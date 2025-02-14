@@ -1,4 +1,8 @@
-# erstellt von big dick rudi montane
+######################################
+# erstellt von big dick rudi montane #
+######################################
+# schwör lerne macht spass du spasst #
+######################################
 
 import tkinter as tk
 from tkinter import ttk
