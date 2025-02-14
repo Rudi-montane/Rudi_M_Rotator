@@ -233,19 +233,19 @@ def select_window(event):
 # gui leech von GPT. Kein Bock GUI langweilig 
 ##################################
 root = tk.Tk()
-root.title("rudi m. rotator")
-root.geometry("600x600")
-root.configure(bg="#222")
+root.title("rudi m. rotator") #titel
+root.geometry("600x600") #grösse Fenster
+root.configure(bg="#222") #BG gray
 
 style = ttk.Style()
-style.configure("TButton", foreground="red", background="black")
+style.configure("TButton", foreground="red", background="black") #ok coloring ist fun
 style.configure("TLabel", foreground="pink", background="#222")
 style.configure("TEntry", foreground="black", fieldbackground="pink")
 style.configure("TCombobox", foreground="black", fieldbackground="pink")
 style.configure("TCheckbutton", foreground="pink", background="#222")
 
 info_label = ttk.Label(root, text="button makro an aus  taste r rotation an aus")
-info_label.pack(pady=5)
+info_label.pack(pady=5) #label text info
 
 window_label = ttk.Label(root, text="fenstertitel")
 window_label.pack()
@@ -264,21 +264,21 @@ sequence_entry.insert(0, ", ".join(sequence_keys))
 sequence_entry.pack()
 
 update_button = ttk.Button(root, text="konfig update", command=update_config)
-update_button.pack(pady=5)
+update_button.pack(pady=5) #update config
 
 altf_var = tk.IntVar(value=1 if altf_enabled else 0)
 altf_check = ttk.Checkbutton(root, text="alt+f follow an", variable=altf_var, command=toggle_altf)
-altf_check.pack(pady=5)
+altf_check.pack(pady=5) #follow checker
 
 ontop_var = tk.IntVar(value=0)
 ontop_check = ttk.Checkbutton(root, text="always on top", variable=ontop_var, command=toggle_always_on_top)
-ontop_check.pack(pady=5)
+ontop_check.pack(pady=5) # always on top enabler
 
 config_filename_frame = ttk.Frame(root)
 config_filename_frame.pack(pady=5)
 
 config_filename_label = ttk.Label(config_filename_frame, text="json datei")
-config_filename_label.grid(row=0, column=0, padx=5)
+config_filename_label.grid(row=0, column=0, padx=5) #config datei .json
 
 config_filename_var = tk.StringVar(value=config_file)
 config_filename_entry = ttk.Entry(config_filename_frame, width=35, textvariable=config_filename_var)
@@ -288,21 +288,21 @@ frame_buttons = ttk.Frame(root)
 frame_buttons.pack(pady=5)
 
 save_button = ttk.Button(frame_buttons, text="speichern", command=save_config)
-save_button.grid(row=0, column=0, padx=5)
+save_button.grid(row=0, column=0, padx=5) #safer
 
 load_button = ttk.Button(frame_buttons, text="laden", command=load_config)
-load_button.grid(row=0, column=1, padx=5)
+load_button.grid(row=0, column=1, padx=5) #loader
 
 macro_button = ttk.Button(root, text="makro an aus", command=toggle_macro)
-macro_button.pack(pady=5)
+macro_button.pack(pady=5) #global ein aus 
 
 console_label = ttk.Label(root, text="konsole")
-console_label.pack()
+console_label.pack() #console 
 
 console_text = tk.Text(root, height=10, width=70, bg="black", fg="red")
-console_text.pack()
+console_text.pack() #console
 
-root.after(100, load_config)
+root.after(100, load_config) #loader
 
 refresh_window_list()
 window_combobox.set(target_window_title)
