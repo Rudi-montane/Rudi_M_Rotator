@@ -1,18 +1,18 @@
 ######################################
 # erstellt von big dick rudi montane #
 ######################################
-# schwör lerne macht spass du spasst #
+# schwör lerne macht spass           #
 ######################################
-
-import tkinter as tk
-from tkinter import ttk
-import threading
-import time
-import random
-import os
-import json
-import win32gui  # pywin32: pip install pywin32
-from pynput.keyboard import Key, Controller, GlobalHotKeys  # pip install pynput
+ #imports 
+import tkinter as tk # Gui 
+from tkinter import ttk # Gui
+import threading # threading für makro 
+import time # sleep für makro unterbruch
+import random # random für sleeps
+import os # safe und laden von datei
+import json # speicher für json datei
+import win32gui  # pywin32: pip install pywin32 # window graber
+from pynput.keyboard import Key, Controller, GlobalHotKeys  # pip install pynput # tasten emulation
 
 # tastaturcontroller init
 keyboard_controller = Controller()
@@ -22,7 +22,7 @@ keyboard_controller = Controller()
 ##################################
 macro_active = False  # ob das makro (inkl hotkey) aktiv ist
 rotation_active = False  # ob rotation aktiv ist
-sequence_keys = ["6", "7", "8", "9", "0", "'", "^", "1", "2", "3", "follow", "4", "5", "6"]
+sequence_keys = ["6", "7", "8", "9", "0", "'", "^", "1", "2", "3", "follow", "4", "5", "6"] # standart rotation # change wenn willst
 target_window_title = "retailpartz"  # standardfenster
 altf_enabled = True  # ob altf aktiv ist
 config_file = "macro_config.json"  # standard datei
