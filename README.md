@@ -1,5 +1,4 @@
-# Rudi_M_Rotator
- Rotator für games
+# Rotator für games
  
 # readme
 
