@@ -1,8 +1,4 @@
-######################################
-# erstellt von big dick rudi montane #
-######################################
-# schwör lerne macht spass           #
-######################################
+
  #imports 
 import tkinter as tk # Gui 
 from tkinter import ttk # Gui
