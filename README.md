@@ -1,16 +1,27 @@
-# Rotator für games
- 
-# readme
+🎮 Rudi M Rotator
+Ein kleines Makro-Skript in Python zum automatischen Rotieren – ideal für Games.
 
-rudi m rotator
+🧰 Voraussetzungen
+Installiere die benötigten Python-Bibliotheken mit:
 
-ein kleines makro python skript
+bash
+Kopieren
+Bearbeiten
+pip install pywin32 pynput
+💡 tkinter ist in der Regel bereits in Python enthalten. Falls nicht, installiere es über dein Paketmanagementsystem (z. B. sudo apt install python3-tk unter Linux).
 
-braucht tkinter pywin32 und pynput
+🚀 Verwendung
+Starte das Skript mit Python:
 
-install mit "pip install pywin32" und "pip install pynput"
+bash
+Kopieren
+Bearbeiten
+python rotator.py
+Drücke die Taste R, um das Makro zu aktivieren oder zu deaktivieren (Toggle-Funktion).
 
-starte python script
+🧠 Funktionen
+Einfaches GUI mit tkinter
 
-taste r fuer rotatoin button fuer makro an aus
+Simuliert Rotationstasten (je nach Spiel individuell anpassbar)
 
+Automatisierung für Games, z. B. zum Dauerrotieren
