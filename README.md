@@ -1,5 +1,5 @@
 
-# Auto Skill Rotation Script
+# Auto Rotation Script
 
 A small Python macro script for automatic skill rotation – ideal for tab-target MMORPGs.
 
