@@ -1,52 +1,48 @@
+# --- Imports ---
+import tkinter as tk
+from tkinter import ttk
+import threading
+import time
+import random
+import os
+import json
+import win32gui               # Window handling via pywin32
+from pynput.keyboard import Key, Controller, GlobalHotKeys  # Keyboard emulation
 
- #imports 
-import tkinter as tk # Gui 
-from tkinter import ttk # Gui
-import threading # threading für makro 
-import time # sleep für makro unterbruch
-import random # random für sleeps
-import os # safe und laden von datei
-import json # speicher für json datei
-import win32gui  # pywin32: pip install pywin32 # window graber
-from pynput.keyboard import Key, Controller, GlobalHotKeys  # pip install pynput # tasten emulation
-
-# tastaturcontroller init
+# Keyboard controller instance from pynput
 keyboard_controller = Controller()
 
-##################################
-# globale variablen
-##################################
-macro_active = False  # ob das makro (inkl hotkey) aktiv ist
-rotation_active = False  # ob rotation aktiv ist
-sequence_keys = ["6", "7", "8", "9", "0", "'", "^", "1", "2", "3", "follow", "4", "5", "6"] # standart rotation # change wenn willst
-target_window_title = "retailpartz"  # standardfenster
-altf_enabled = True  # ob altf aktiv ist
-config_file = "macro_config.json"  # standard datei
+# --- Global state variables ---
+macro_active = False           # Tracks whether the macro (with global hotkey) is active
+rotation_active = False        # Tracks whether the skill rotation loop is running
+sequence_keys = ["6", "7", "8", "9", "0", "'", "^", "1", "2", "3", "follow", "4", "5", "6"]  
+# Default sequence of keys to press, can be changed by user
+target_window_title = "retailpartz"   # Default window title to target
+altf_enabled = True             # Whether the Alt+F follow hotkey is enabled
+config_file = "macro_config.json"  # Default configuration file
 
-hotkeys = None  # globalhotkeys instanz
-ontop_var = None  # always on top
+hotkeys = None                  # Will hold GlobalHotKeys instance
+ontop_var = None                # Keeps GUI on top if enabled
 
-##################################
-# hilfsfunktionen
-##################################
+# --- Helper functions ---
 
 def console_output(text):
-    """fügt nachricht in gui konsole hinzu"""
+    """Writes a message into the console box inside the GUI."""
     console_text.insert(tk.END, text + "\n")
     console_text.see(tk.END)
 
 
 def send_key(key):
-    """sendet eine taste"""
+    """Simulates pressing and releasing a single key."""
     try:
         keyboard_controller.press(key)
         keyboard_controller.release(key)
     except Exception as e:
-        console_output(f"fehler senden {key} {e}")
+        console_output(f"Error sending {key}: {e}")
 
 
 def send_hotkey(keys):
-    """sendet eine hotkey-kombination"""
+    """Sends a key combination, e.g. ['alt', 'f']."""
     try:
         for k in keys:
             if k.lower() == 'alt':
@@ -59,81 +55,83 @@ def send_hotkey(keys):
             else:
                 keyboard_controller.release(k)
     except Exception as e:
-        console_output(f"fehler hotkey {keys} {e}")
+        console_output(f"Error sending hotkey {keys}: {e}")
 
 
 def is_target_window_active():
-    """prüft fenstertitel"""
+    """Checks if the currently active foreground window matches the configured title."""
     active_title = win32gui.GetWindowText(win32gui.GetForegroundWindow()).lower()
     return target_window_title.lower() in active_title
 
-##################################
-# rotation
-##################################
+# --- Rotation logic ---
 
 def combined_loop():
-    """schleife für tasten sequenz"""
+    """
+    Main loop that cycles through the key sequence while rotation is active.
+    Adds random sleep intervals to mimic natural delays.
+    """
     global rotation_active
     seq_index = 0
     while rotation_active:
         if is_target_window_active():
             current = sequence_keys[seq_index].strip().lower()
-            console_output(f"sende {current}")
+            console_output(f"Sending {current}")
             if current in ["follow", "followall", "alt+f"]:
                 if altf_enabled:
                     send_hotkey(['alt', 'f'])
                 else:
-                    console_output("alt+f aus")
+                    console_output("Alt+F disabled")
             else:
-                send_key(Key.f7)
+                # Example: small delay before skill press
+                send_key(Key.f7)  
                 time.sleep(random.uniform(0.18, 0.22))
                 send_key(sequence_keys[seq_index])
             time.sleep(random.uniform(0.18, 0.22))
             seq_index = (seq_index + 1) % len(sequence_keys)
         else:
-            console_output("ziel fenster nicht aktiv warte")
+            console_output("Target window not active, waiting...")
             time.sleep(0.5)
 
+
 def toggle_rotation():
-    """schaltet rotation an oder aus"""
+    """Turns the rotation loop on or off."""
     global rotation_active
     if rotation_active:
         rotation_active = False
-        console_output("rotation aus")
+        console_output("Rotation stopped")
     else:
         rotation_active = True
-        console_output("rotation an")
+        console_output("Rotation started")
         threading.Thread(target=combined_loop, daemon=True).start()
 
-##################################
-# makro an/aus (hotkey aktivieren)
-##################################
+# --- Macro activation (hotkey binding) ---
 
 def toggle_macro():
-    """aktiviert oder deaktiviert das makro (globalhotkey r)"""
+    """
+    Enables or disables the macro entirely.
+    Registers/unregisters global hotkeys (R toggles rotation).
+    """
     global macro_active, hotkeys
     if macro_active:
         macro_active = False
-        console_output("makro aus (kein hotkey)")
+        console_output("Macro off (hotkey disabled)")
         if hotkeys:
             hotkeys.stop()
             hotkeys = None
     else:
         macro_active = True
-        console_output("makro an (hotkey r aktiv)")
+        console_output("Macro on (R key is active)")
         hotkeys = GlobalHotKeys({'r': toggle_rotation})
         hotkeys.start()
 
-##################################
-# config laden/speichern
-##################################
+# --- Config load/save ---
 
 def load_config():
-    """lädt config"""
+    """Loads configuration (sequence, window title, follow option) from JSON file."""
     global sequence_keys, target_window_title, altf_enabled
     file_name = config_filename_var.get().strip()
     if not file_name:
-        console_output("kein dateiname kein laden")
+        console_output("No filename provided, cannot load")
         return
     if os.path.exists(file_name):
         try:
@@ -147,19 +145,19 @@ def load_config():
             altf_var.set(1 if altf_enabled else 0)
             refresh_window_list()
             window_combobox.set(target_window_title)
-            console_output(f"config aus {file_name} geladen")
+            console_output(f"Config loaded from {file_name}")
         except Exception as e:
-            console_output(f"fehler laden config {e}")
+            console_output(f"Error loading config: {e}")
     else:
-        console_output(f"datei {file_name} nicht da")
+        console_output(f"File {file_name} does not exist")
 
 
 def save_config():
-    """speichert config"""
+    """Saves current configuration to JSON file."""
     global sequence_keys, target_window_title, altf_enabled
     file_name = config_filename_var.get().strip()
     if not file_name:
-        console_output("kein dateiname kein speichern")
+        console_output("No filename provided, cannot save")
         return
     data = {
         "sequence_keys": sequence_keys,
@@ -169,29 +167,29 @@ def save_config():
     try:
         with open(file_name, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        console_output(f"config in {file_name} gespeichert")
+        console_output(f"Config saved to {file_name}")
     except Exception as e:
-        console_output(f"fehler speichern config {e}")
+        console_output(f"Error saving config: {e}")
 
-##################################
-# gui events
-##################################
+# --- GUI events ---
 
 def update_config():
-    """holt seq aus eingabe"""
+    """Reads the sequence from the entry field and updates the in-memory list."""
     global sequence_keys
     seq_str = sequence_entry.get()
     sequence_keys = [s.strip() for s in seq_str.split(",") if s.strip()]
-    console_output(f"seq {sequence_keys}")
+    console_output(f"Updated sequence: {sequence_keys}")
+
 
 def toggle_altf():
-    """schaltet alt+f um"""
+    """Enables or disables the Alt+F follow hotkey."""
     global altf_enabled
     altf_enabled = bool(altf_var.get())
-    console_output(f"alt+f {'an' if altf_enabled else 'aus'}")
+    console_output(f"Alt+F {'enabled' if altf_enabled else 'disabled'}")
+
 
 def on_close():
-    """beendet programm"""
+    """Stops rotation, hotkeys, and closes the application window cleanly."""
     global rotation_active, hotkeys, macro_active
     rotation_active = False
     macro_active = False
@@ -199,16 +197,15 @@ def on_close():
         hotkeys.stop()
     root.destroy()
 
+
 def toggle_always_on_top():
-    """schaltet always on top um"""
+    """Keeps the window always on top when enabled."""
     root.attributes("-topmost", bool(ontop_var.get()))
 
-##################################
-# fenster handling
-##################################
+# --- Window handling ---
 
 def enum_windows():
-    """listet sichtbare fenster auf"""
+    """Enumerates all visible windows and returns their titles."""
     results = []
     def enum_handler(hwnd, _):
         if win32gui.IsWindowVisible(hwnd):
@@ -218,67 +215,68 @@ def enum_windows():
     win32gui.EnumWindows(enum_handler, None)
     return results
 
+
 def refresh_window_list():
-    """aktualisiert combobox liste"""
+    """Refreshes the combobox with the list of active window titles."""
     window_combobox['values'] = enum_windows()
 
+
 def select_window(event):
-    """übernimmt fensterauswahl"""
+    """Sets the selected window title as the active target."""
     global target_window_title
     chosen = window_combobox.get()
     target_window_title = chosen
-    console_output(f"aktives fenster {target_window_title}")
+    console_output(f"Target window set to: {target_window_title}")
 
-##################################
-# gui leech von GPT. Kein Bock GUI langweilig 
-##################################
+# --- GUI setup ---
+
 root = tk.Tk()
-root.title("rudi m. rotator") #titel
-root.geometry("600x600") #grösse Fenster
-root.configure(bg="#222") #BG gray
+root.title("rudi m. rotator")
+root.geometry("600x600")
+root.configure(bg="#222")
 
 style = ttk.Style()
-style.configure("TButton", foreground="red", background="black") #ok coloring ist fun
+style.configure("TButton", foreground="red", background="black")
 style.configure("TLabel", foreground="pink", background="#222")
 style.configure("TEntry", foreground="black", fieldbackground="pink")
 style.configure("TCombobox", foreground="black", fieldbackground="pink")
 style.configure("TCheckbutton", foreground="pink", background="#222")
 
-info_label = ttk.Label(root, text="button makro an aus  taste r rotation an aus")
-info_label.pack(pady=5) #label text info
+info_label = ttk.Label(root, text="Macro toggle button (R key controls rotation)")
+info_label.pack(pady=5)
 
-window_label = ttk.Label(root, text="fenstertitel")
+window_label = ttk.Label(root, text="Target window title")
 window_label.pack()
 
 window_combobox = ttk.Combobox(root, width=50)
 window_combobox.pack(pady=2)
 window_combobox.bind("<<ComboboxSelected>>", select_window)
 
-refresh_button = ttk.Button(root, text="fensterliste aktualisieren", command=refresh_window_list)
+refresh_button = ttk.Button(root, text="Refresh window list", command=refresh_window_list)
 refresh_button.pack(pady=5)
 
-sequence_label = ttk.Label(root, text="sequenz (komma)")
+sequence_label = ttk.Label(root, text="Sequence (comma-separated)")
 sequence_label.pack()
 sequence_entry = ttk.Entry(root, width=50)
 sequence_entry.insert(0, ", ".join(sequence_keys))
 sequence_entry.pack()
 
-update_button = ttk.Button(root, text="konfig update", command=update_config)
-update_button.pack(pady=5) #update config
+update_button = ttk.Button(root, text="Update config", command=update_config)
+update_button.pack(pady=5)
 
 altf_var = tk.IntVar(value=1 if altf_enabled else 0)
-altf_check = ttk.Checkbutton(root, text="alt+f follow an", variable=altf_var, command=toggle_altf)
-altf_check.pack(pady=5) #follow checker
+altf_check = ttk.Checkbutton(root, text="Enable Alt+F follow", variable=altf_var, command=toggle_altf)
+altf_check.pack(pady=5)
 
 ontop_var = tk.IntVar(value=0)
-ontop_check = ttk.Checkbutton(root, text="always on top", variable=ontop_var, command=toggle_always_on_top)
-ontop_check.pack(pady=5) # always on top enabler
+ontop_check = ttk.Checkbutton(root, text="Always on top", variable=ontop_var, command=toggle_always_on_top)
+ontop_check.pack(pady=5)
 
 config_filename_frame = ttk.Frame(root)
 config_filename_frame.pack(pady=5)
 
-config_filename_label = ttk.Label(config_filename_frame, text="json datei")
-config_filename_label.grid(row=0, column=0, padx=5) #config datei .json
+config_filename_label = ttk.Label(config_filename_frame, text="Config file (JSON)")
+config_filename_label.grid(row=0, column=0, padx=5)
 
 config_filename_var = tk.StringVar(value=config_file)
 config_filename_entry = ttk.Entry(config_filename_frame, width=35, textvariable=config_filename_var)
@@ -287,22 +285,22 @@ config_filename_entry.grid(row=0, column=1, padx=5)
 frame_buttons = ttk.Frame(root)
 frame_buttons.pack(pady=5)
 
-save_button = ttk.Button(frame_buttons, text="speichern", command=save_config)
-save_button.grid(row=0, column=0, padx=5) #safer
+save_button = ttk.Button(frame_buttons, text="Save", command=save_config)
+save_button.grid(row=0, column=0, padx=5)
 
-load_button = ttk.Button(frame_buttons, text="laden", command=load_config)
-load_button.grid(row=0, column=1, padx=5) #loader
+load_button = ttk.Button(frame_buttons, text="Load", command=load_config)
+load_button.grid(row=0, column=1, padx=5)
 
-macro_button = ttk.Button(root, text="makro an aus", command=toggle_macro)
-macro_button.pack(pady=5) #global ein aus 
+macro_button = ttk.Button(root, text="Macro toggle", command=toggle_macro)
+macro_button.pack(pady=5)
 
-console_label = ttk.Label(root, text="konsole")
-console_label.pack() #console 
+console_label = ttk.Label(root, text="Console output")
+console_label.pack()
 
 console_text = tk.Text(root, height=10, width=70, bg="black", fg="red")
-console_text.pack() #console
+console_text.pack()
 
-root.after(100, load_config) #loader
+root.after(100, load_config)
 
 refresh_window_list()
 window_combobox.set(target_window_title)
